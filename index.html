@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>广东话语法训练游戏 - 三关卡版</title>
+    <title>广东话语法训练游戏</title>
     <style>
         * {
             box-sizing: border-box;
@@ -102,7 +102,7 @@
             padding: 12px 25px;
             font-size: 1.3rem;
             font-weight: bold;
-            cursor: grab;
+            cursor: pointer;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             transition: all 0.3s;
             user-select: none;
@@ -113,8 +113,15 @@
             box-shadow: 0 6px 12px rgba(0,0,0,0.15);
         }
         
-        .word:active {
-            cursor: grabbing;
+        .word.selected {
+            background: linear-gradient(135deg, #43e97b, #38f9d7);
+            transform: scale(0.95);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .word.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
         
         .target-container {
@@ -143,6 +150,13 @@
             font-size: 1.3rem;
             font-weight: bold;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .target-word:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
         }
         
         .buttons {
@@ -252,6 +266,10 @@
             background: linear-gradient(135deg, #4facfe, #00f2fe);
         }
         
+        #back-to-levels-btn {
+            background: linear-gradient(135deg, #38f9d7, #43e97b);
+        }
+        
         .level-indicator {
             background: linear-gradient(135deg, #ff9a9e, #fad0c4);
             border-radius: 20px;
@@ -267,13 +285,14 @@
             justify-content: center;
             gap: 20px;
             margin-bottom: 30px;
+            flex-wrap: wrap;
         }
         
         .level-card {
             background: white;
             border-radius: 15px;
-            padding: 20px;
-            width: 200px;
+            padding: 25px 20px;
+            width: 230px;
             box-shadow: 0 6px 15px rgba(0,0,0,0.1);
             cursor: pointer;
             transition: all 0.3s;
@@ -297,8 +316,9 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 2rem;
+            font-size: 2.5rem;
             opacity: 0.8;
+            text-shadow: 0 0 10px rgba(0,0,0,0.2);
         }
         
         .level-title {
@@ -312,32 +332,71 @@
             font-size: 0.95rem;
             color: #666;
             min-height: 60px;
+            margin-bottom: 10px;
         }
         
         .level-number {
             background: linear-gradient(135deg, #4facfe, #00f2fe);
             color: white;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 15px;
             font-weight: bold;
-            font-size: 1.2rem;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
         
         .level-status {
-            margin-top: 10px;
+            margin-top: 5px;
             font-weight: bold;
             color: #b21f1f;
         }
         
+        .stars {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 15px;
+            font-size: 2.2rem;
+            min-height: 40px;
+        }
+        
+        .gold-star {
+            color: #FFD700;
+            text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);
+        }
+        
+        .silver-star {
+            color: #C0C0C0;
+            text-shadow: 0 0 8px rgba(192, 192, 192, 0.7);
+        }
+        
+        .star-placeholder {
+            color: #ddd;
+        }
+        
+        .congrats {
+            color: #1a2a6c;
+            font-weight: bold;
+            font-size: 1.4rem;
+            margin-top: 10px;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
         /* 响应式设计 */
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
             .game-container {
-                padding: 15px;
+                padding: 20px 15px;
             }
             
             h1 {
@@ -360,13 +419,29 @@
             }
             
             .level-container {
-                flex-direction: column;
-                align-items: center;
+                gap: 15px;
             }
             
             .level-card {
                 width: 100%;
-                max-width: 300px;
+                max-width: 280px;
+                padding: 20px 15px;
+            }
+            
+            .stars {
+                font-size: 1.8rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .level-card {
+                max-width: 100%;
+            }
+            
+            .buttons {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
             }
         }
     </style>
@@ -374,7 +449,7 @@
 <body>
     <div class="game-container">
         <h1>广东话语法训练游戏</h1>
-        <div class="subtitle">三关卡挑战 - 答对4题以上解锁下一关</div>
+        <div class="subtitle">三星关卡挑战 - 答对4题以上解锁下一关</div>
         
         <div id="level-select-screen">
             <div class="level-container">
@@ -382,6 +457,7 @@
                     <div class="level-number">1</div>
                     <div class="level-title">比较关</div>
                     <div class="level-description">学习比较多少、大小、先后的广东话表达方式</div>
+                    <div class="stars" id="level1-stars"></div>
                     <div class="level-status" id="level1-status">点击开始</div>
                 </div>
                 
@@ -389,6 +465,7 @@
                     <div class="level-number">2</div>
                     <div class="level-title">时态关</div>
                     <div class="level-description">掌握表达已完成、正在进行和将来会做的时态</div>
+                    <div class="stars" id="level2-stars"></div>
                     <div class="level-status" id="level2-status">尚未解锁</div>
                 </div>
                 
@@ -396,6 +473,7 @@
                     <div class="level-number">3</div>
                     <div class="level-title">购物关</div>
                     <div class="level-description">学习购物场景中的常用词汇和表达</div>
+                    <div class="stars" id="level3-stars"></div>
                     <div class="level-status" id="level3-status">尚未解锁</div>
                 </div>
             </div>
@@ -410,12 +488,12 @@
             
             <div class="question-container">
                 <div class="mandarin-sentence" id="mandarin-sentence"></div>
-                <div class="instruction">请将以下词语拖放到下方区域组成广东话句子</div>
+                <div class="instruction">请点击词语添加到下方区域组成广东话句子</div>
                 
                 <div class="words-container" id="words-container"></div>
                 
                 <div class="target-container" id="target-container">
-                    <div class="instruction">请将词语拖放到这里</div>
+                    <div class="instruction">请点击词语添加到此处</div>
                 </div>
                 
                 <div class="buttons">
@@ -430,10 +508,11 @@
             <h2 class="result-title">关卡结果</h2>
             <div class="level-indicator" id="result-level-indicator">关卡: 比较关</div>
             <div class="score-container">得分: <span id="score">0</span>/5</div>
+            <div class="stars" id="result-stars"></div>
             <div id="result-content"></div>
             <div class="level-buttons">
                 <button id="retry-btn">重试本关</button>
-                <button id="next-level-btn" style="display:none">进入下一关</button>
+                <button id="back-to-levels-btn">返回关卡选择</button>
             </div>
         </div>
     </div>
@@ -560,6 +639,7 @@
         let userAnswers = [];
         let score = 0;
         let unlockedLevels = [1]; // 初始解锁第一关
+        let levelStars = [0, 0, 0]; // 每个关卡的星星数（0为无星）
 
         // DOM元素
         const levelSelectScreen = document.getElementById('level-select-screen');
@@ -575,9 +655,10 @@
         const resultContentEl = document.getElementById('result-content');
         const scoreEl = document.getElementById('score');
         const retryBtn = document.getElementById('retry-btn');
-        const nextLevelBtn = document.getElementById('next-level-btn');
+        const backToLevelsBtn = document.getElementById('back-to-levels-btn');
         const levelIndicator = document.getElementById('level-indicator');
         const resultLevelIndicator = document.getElementById('result-level-indicator');
+        const resultStarsEl = document.getElementById('result-stars');
         
         // 关卡卡片
         const level1Card = document.getElementById('level1-card');
@@ -586,12 +667,18 @@
         const level1Status = document.getElementById('level1-status');
         const level2Status = document.getElementById('level2-status');
         const level3Status = document.getElementById('level3-status');
+        const level1Stars = document.getElementById('level1-stars');
+        const level2Stars = document.getElementById('level2-stars');
+        const level3Stars = document.getElementById('level3-stars');
 
         // 初始化关卡选择界面
         function initLevelSelect() {
             // 更新关卡状态
             level1Card.classList.remove('locked');
             level1Card.addEventListener('click', () => startLevel(0));
+            
+            // 更新星星显示
+            updateStarsDisplay();
             
             if (unlockedLevels.includes(2)) {
                 level2Card.classList.remove('locked');
@@ -604,6 +691,35 @@
                 level3Status.textContent = "点击开始";
                 level3Card.addEventListener('click', () => startLevel(2));
             }
+        }
+        
+        // 更新星星显示
+        function updateStarsDisplay() {
+            // 更新关卡选择界面的星星
+            renderStars(level1Stars, levelStars[0]);
+            renderStars(level2Stars, levelStars[1]);
+            renderStars(level3Stars, levelStars[2]);
+        }
+        
+        // 渲染星星
+        function renderStars(container, count) {
+            container.innerHTML = '';
+            if (count >= 2) {
+                // 两颗金色星星（5分）
+                for (let i = 0; i < 2; i++) {
+                    const star = document.createElement('span');
+                    star.innerHTML = '🌟';
+                    star.className = 'gold-star';
+                    container.appendChild(star);
+                }
+            } else if (count === 1) {
+                // 一颗银色星星（4分）
+                const star = document.createElement('span');
+                star.innerHTML = '⭐';
+                star.className = 'silver-star';
+                container.appendChild(star);
+            }
+            // 0颗星时不显示
         }
 
         // 开始关卡
@@ -634,23 +750,37 @@
             
             // 清空容器
             wordsContainerEl.innerHTML = '';
-            targetContainerEl.innerHTML = '<div class="instruction">请将词语拖放到这里</div>';
+            targetContainerEl.innerHTML = '<div class="instruction">请点击词语添加到此处</div>';
             
-            // 添加词语方块
-            shuffleArray([...question.words]).forEach(word => {
+            // 添加词语方块（打乱顺序）
+            const shuffledWords = [...question.words];
+            for (let i = shuffledWords.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffledWords[i], shuffledWords[j]] = [shuffledWords[j], shuffledWords[i]];
+            }
+            
+            shuffledWords.forEach(word => {
                 const wordEl = document.createElement('div');
                 wordEl.className = 'word';
                 wordEl.textContent = word;
-                wordEl.draggable = true;
                 
-                // 设置拖拽事件
-                wordEl.addEventListener('dragstart', dragStart);
+                // 点击事件：将词语添加到目标区域
+                wordEl.addEventListener('click', () => {
+                    // 添加到目标区域
+                    addToTarget(word);
+                    
+                    // 将词语标记为已选择
+                    wordEl.classList.add('selected');
+                    
+                    // 禁用点击
+                    wordEl.classList.add('disabled');
+                    
+                    // 启用下一题按钮
+                    nextBtn.disabled = false;
+                });
+                
                 wordsContainerEl.appendChild(wordEl);
             });
-            
-            // 设置目标容器事件
-            targetContainerEl.addEventListener('dragover', dragOver);
-            targetContainerEl.addEventListener('drop', drop);
             
             // 更新按钮状态
             nextBtn.disabled = true;
@@ -664,58 +794,39 @@
                 submitBtn.style.display = 'none';
             }
         }
-
-        // 辅助函数：打乱数组顺序
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
+        
+        // 添加词语到目标区域
+        function addToTarget(word) {
+            // 移除提示（如果存在）
+            if (targetContainerEl.querySelector('.instruction')) {
+                targetContainerEl.innerHTML = '';
             }
-            return array;
-        }
-
-        // 拖拽功能实现
-        let draggedElement = null;
-
-        function dragStart(e) {
-            draggedElement = this;
-            e.dataTransfer.setData('text/plain', this.textContent);
-            setTimeout(() => this.style.opacity = '0.4', 0);
-        }
-
-        function dragOver(e) {
-            e.preventDefault();
-            this.classList.add('highlight');
-        }
-
-        function drop(e) {
-            e.preventDefault();
-            this.classList.remove('highlight');
             
-            if (draggedElement) {
-                // 移除"请将词语拖放到这里"的提示
-                if (this.querySelector('.instruction')) {
-                    this.innerHTML = '';
+            // 创建目标区域词语
+            const targetWord = document.createElement('div');
+            targetWord.className = 'target-word';
+            targetWord.textContent = word;
+            
+            // 点击事件：移除词语
+            targetWord.addEventListener('click', () => {
+                // 从目标区域移除
+                targetWord.remove();
+                
+                // 在词语区域重新启用该词语
+                Array.from(wordsContainerEl.children).forEach(wordEl => {
+                    if (wordEl.textContent === word && wordEl.classList.contains('disabled')) {
+                        wordEl.classList.remove('selected');
+                        wordEl.classList.remove('disabled');
+                    }
+                });
+                
+                // 如果目标区域为空，重新显示提示
+                if (targetContainerEl.children.length === 0) {
+                    targetContainerEl.innerHTML = '<div class="instruction">请点击词语添加到此处</div>';
                 }
-                
-                // 创建目标区域词语
-                const targetWord = document.createElement('div');
-                targetWord.className = 'target-word';
-                targetWord.textContent = draggedElement.textContent;
-                targetWord.draggable = true;
-                
-                // 设置拖拽事件
-                targetWord.addEventListener('dragstart', dragStart);
-                this.appendChild(targetWord);
-                
-                // 移除原词语
-                draggedElement.remove();
-                
-                // 启用下一题按钮
-                nextBtn.disabled = false;
-                
-                draggedElement = null;
-            }
+            });
+            
+            targetContainerEl.appendChild(targetWord);
         }
 
         // 重置当前题目
@@ -760,6 +871,20 @@
                 }
             });
             
+            // 更新星星状态
+            if (score === 5) {
+                levelStars[currentLevel] = 2; // 两颗金色星星
+            } else if (score >= 4) {
+                levelStars[currentLevel] = 1; // 一颗银色星星
+            } else {
+                levelStars[currentLevel] = 0; // 无星
+            }
+            
+            // 无论得分多少，只要达到4分及以上就解锁下一关
+            if (score >= 4 && currentLevel < levels.length - 1 && !unlockedLevels.includes(currentLevel + 2)) {
+                unlockedLevels.push(currentLevel + 2);
+            }
+            
             // 显示结果
             showResults();
         });
@@ -772,6 +897,26 @@
             
             // 更新结果页面的关卡指示器
             resultLevelIndicator.textContent = `关卡: ${levels[currentLevel].name}`;
+            
+            // 更新结果页面的星星显示
+            resultStarsEl.innerHTML = '';
+            if (score === 5) {
+                for (let i = 0; i < 2; i++) {
+                    const star = document.createElement('span');
+                    star.innerHTML = '🌟';
+                    star.className = 'gold-star';
+                    resultStarsEl.appendChild(star);
+                }
+                resultStarsEl.innerHTML += '<div class="congrats">完美！获得两颗星！</div>';
+            } else if (score >= 4) {
+                const star = document.createElement('span');
+                star.innerHTML = '⭐';
+                star.className = 'silver-star';
+                resultStarsEl.appendChild(star);
+                resultStarsEl.innerHTML += '<div class="congrats">很棒！获得一颗星！</div>';
+            } else {
+                resultStarsEl.innerHTML = '<div class="congrats">继续努力！</div>';
+            }
             
             // 生成结果内容
             let resultsHTML = '';
@@ -790,15 +935,6 @@
             });
             
             resultContentEl.innerHTML = resultsHTML;
-            
-            // 检查是否解锁下一关
-            const nextLevel = currentLevel + 1;
-            if (score >= 4 && nextLevel < levels.length && !unlockedLevels.includes(nextLevel + 1)) {
-                unlockedLevels.push(nextLevel + 1);
-                nextLevelBtn.style.display = 'inline-block';
-            } else {
-                nextLevelBtn.style.display = 'none';
-            }
         }
 
         // 重试本关
@@ -806,16 +942,11 @@
             startLevel(currentLevel);
         });
 
-        // 进入下一关
-        nextLevelBtn.addEventListener('click', () => {
-            if (currentLevel < levels.length - 1) {
-                startLevel(currentLevel + 1);
-            } else {
-                // 如果已经是最后一关，返回关卡选择界面
-                levelSelectScreen.style.display = 'block';
-                resultContainer.style.display = 'none';
-                initLevelSelect();
-            }
+        // 返回关卡选择
+        backToLevelsBtn.addEventListener('click', () => {
+            resultContainer.style.display = 'none';
+            levelSelectScreen.style.display = 'block';
+            initLevelSelect(); // 更新关卡选择界面的状态
         });
 
         // 初始化关卡选择界面
